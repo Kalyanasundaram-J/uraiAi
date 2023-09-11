@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home</title>
+  <%- include('./components/header.ejs') %>
+</head>
+
+<body class="vh-100">
+  <header></header>
+  <div class="w-100 h-100 d-flex position-relative bg-light z-0 py-3">
+    <div class="flex-shrink-1 flex-1"></div>
+    <main class="w-100 h-100 px-3">
+      <div class="d-flex flex-column h-100 bg-primary-subtle rounded">
+        <div class="flex-shrink-1 bg-success-subtle text-dark flex-grow-0 position-sticky bg-secondary-subtle text-center rounded py-2">
+          <strong>Chat Bot</strong>
+        </div>
+        <div class="container-fluid h-100 overflow-y-auto my-4" id="chatContainer">
+          <!-- Chat block will create inside this div -->
+        </div>
+        <form class="flex-shrink-1 position-sticky bottom-0 rounded" onsubmit="sendingPrompt(event)">
+          <div class="d-flex mb-1 bg-white rounded mx-3 py-2 pe-2 position-relative">
+            <textarea class="form-control border-0 shadow-none pe-5" rows="1" id="promptValue" aria-describedby="PromptHelp" style="max-height: 200px; resize: none;outline: none;"></textarea>
+            <button type="submit" class="btn btn-primary btn-sm rounded position-absolute bottom-0 end-0 m-2" disabled="true" id="sendPrompt">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white" class="m-1 md-0" width="1rem" height="1rem" stroke-width="2">
+                <path d="M.5 1.163A1 1 0 0 1 1.97.28l12.868 6.837a1 1 0 0 1 0 1.766L1.969 15.72A1 1 0 0 1 .5 14.836V10.33a1 1 0 0 1 .816-.983L8.5 8 1.316 6.653A1 1 0 0 1 .5 5.67V1.163Z"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+        <div class="text-center flex-shrink-1">
+          <p class="mb-1 text-secondary">
+            No Copyright <strike>&copy;</strike> 2023
+            <b>Urai<span class="text-primary">AI</span></b>
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- <footer class="text-end bg-light px-4 py-2">
+    
+</footer> -->
+  <%- include('./components/footer.ejs') %>
+    <script>
+      const promptInput = document.getElementById("promptValue");
+      const chatContainer = document.getElementById("chatContainer");
+      const sendPrompt = document.querySelector('#sendPrompt');
+
+      async function sendingPrompt (event){
+        event.preventDefault(); // Prevent the form from submitting
+        if (promptInput.value) {
+          console.log("Jumped inside function")
+          chatContainer.appendChild(generateDivForChat({text:promptInput.value},'USER'));
+          result = await happyFace(promptInput.value);
+          chatContainer.appendChild(generateDivForChat({text:result}));
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          console.log("Scroll crossed")
+          promptInput.value = "";
+          promptInput.rows = 1
+
+        }
+      };
+      promptInput.addEventListener("keydown", async function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault(); // Prevent the form from submitting
+          if (event.shiftKey || window.innerWidth <= 600) {
+            this.value += '\n';
+          }
+          else {
+            chatContainer.appendChild(generateDivForChat({text:promptInput.value},'USER'));
+            result = await happyFace(promptInput.value);
+            console.log("Result:", result);
+            chatContainer.appendChild(generateDivForChat({text:result}));
+            promptInput.value = "";
+          }
+        }
+      });
+      promptInput.addEventListener('input', function() {
+        // Calculate the new number of rows based on the content
+        if(this.value.length>0){sendPrompt.disabled=false;}
+        else{sendPrompt.disabled=true;}
+        const newRows = this.value.split('\n').length;
+        // Limit the maximum number of rows to 6 (around 200px height)
+        if (newRows > 6) {
+          this.rows = 6;
+          this.style.overflowY = 'scroll';
+        } else {
+          this.rows = newRows;
+          this.style.overflowY = 'hidden';
+        }
+      });
+
+      async function happyFace(promptValue) {
+        try {
+          const response = await fetch("/hf", {
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+            body: JSON.stringify({ prompt: promptValue }),
+          });
+          if (response.ok) {
+            const result = await response.json();
+            console.log("response:", result);
+            return result.data;
+          } else {
+            console.error("response:", response.status);
+            throw new Error("Error in Fetching");
+          }
+        } catch (error) {
+          console.log(error);
+          return error;
+        }
+      }
+      function generateRandomString(length, options) {
+        const charset = options && options.charset ? options.charset : "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
+        const charsetLength = charset.length;
+
+        for (let i = 0; i < length; i++) {
+          const randomIndex = Math.floor(Math.random() * charsetLength);
+          result += charset[randomIndex];
+        }
+
+        return result;
+      }
+      // User and Bot chat element defined here
+      const userInnerHtml = `
+        <div class="flex-shrink-1 pt-1">
+          <div class="d-flex border border-primary p-1 rounded-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 193.5 248.8" width="20" height="20" xml:space="preserve"><style>.st1{display:inline}.st1,.st3{fill:#f7f8fc}.st4,.st6,.st7{fill:#fff;stroke:#0561fc;stroke-width:10.0091}.st6,.st7{fill:#c5e1f9}.st7{fill:none}</style><g id="Layer_4"><path class="st6" d="M25 248.8v-30.1c0-11.1 9-20 20-20h110c11 0 20 9 20 20v30.1"/><path class="st4" d="M61.2 248.8V221c0-10.2 4.6-18.5 10.3-18.5h56.8c5.7 0 10.3 8.3 10.3 18.5v27.8"/><path class="st4" d="M82.5 153.6h35v65.1h-35z"/><path class="st6" d="M88.3 66.8c0 24-18.6 43.4-41.7 43.4C23.7 110.2 5 90.8 5 66.8s18.6-43.4 41.7-43.4c23-.1 41.6 19.4 41.6 43.4z"/><path class="st6" d="M63.3 114.1c0 15.3-11.9 27.8-26.7 27.8S10 129.5 10 114.1c0-15.3 11.9-27.8 26.7-27.8s26.6 12.5 26.6 27.8z"/><path class="st4" d="M68.3 92.4c0 15.3-11.9 27.8-26.7 27.8S15 107.8 15 92.4c0-15.3 11.9-27.8 26.7-27.8s26.6 12.5 26.6 27.8z"/><path class="st6" d="M173.3 114.1c0 15.3-11.9 27.8-26.7 27.8S120 129.5 120 114.1c0-15.3 11.9-27.8 26.7-27.8s26.6 12.5 26.6 27.8z"/><path class="st4" d="M149.8 118.3c0 32.9-26.6 59.6-59.4 59.6S31 151.2 31 118.3V70.7c0-32.9 26.6-59.6 59.4-59.6s59.4 26.7 59.4 59.6v47.6z"/><path class="st6" d="m144.1 27 42.3 42.4-7.7 7.7c-23.4 23.5-61.4 23.5-84.8 0L41 24.1C70.5-2.3 115.8-1.3 144.1 27z"/><path class="st7" d="M49.6 96.4c0-8.1 6.5-14.6 14.6-14.6s14.6 6.6 14.6 14.6M77.5 138.6H100M86.2 234.6h27.5M100 232.5v14.7"/></g></svg>
+          </div>
+        </div>`;
+      const botInnerHtml = `
+        <div class="flex-shrink-1">
+          <div class="flex p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="20" height="20"><defs><style>.cls-1{fill:#42a5f5}</style></defs><g id="Bot"><path class="cls-1" d="M10 16H8a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h2a1 1 0 0 0 1-1V17a1 1 0 0 0-1-1zM40 16h-2a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h2a3 3 0 0 0 3-3v-6a3 3 0 0 0-3-3zM33 16H15a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-15 6a2 2 0 1 1 2-2 2 2 0 0 1-2 2zm8 4h-4a1 1 0 0 1 0-2h4a1 1 0 0 1 0 2zm4-4a2 2 0 1 1 2-2 2 2 0 0 1-2 2zM13 34v7.33L17 48h14l4-6.67V34zm14 9h-6a2 2 0 0 1 0-4h6a2 2 0 0 1 0 4z"/><path d="M42.5 38.13C34.91 33.8 35.38 34 35 34h-5.22l-.5-2H34a5 5 0 0 0 5-5V17a5 5 0 0 0-3-4.58v-7.2a3 3 0 1 0-4.38-.41L30.18 12H17.82l-1.44-7.19a3 3 0 1 0-4.38.41v7.2A5 5 0 0 0 9 17v10a5 5 0 0 0 5 5h4.72l-.5 2c-5.63 0-5.39 0-5.72.13C4.93 38.46 5 38.21 5 39v8a1 1 0 0 0 1 1h36a1 1 0 0 0 1-1c0-8.71.18-8.48-.5-8.87zM34 2a1 1 0 0 1 0 2 1 1 0 0 1 0-2zm-.57 3.94A2.76 2.76 0 0 0 34 6v6h-1.78zM14 2a1 1 0 0 1 0 2 1 1 0 0 1 0-2zm1.78 10H14V6a2.76 2.76 0 0 0 .57-.06zM14 30a3 3 0 0 1-3-3V17a3 3 0 0 1 3-3h20a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3zm6.78 2h6.44l.5 2h-7.44zM41 46H7v-6.42L13.27 36h21.46L41 39.58z" style="fill:#424242"/></g></svg>
+          </div>
+        </div>`;
+
+
+
+      /**
+       * Generate the element for each chat
+       * 
+       * @param {object} data - it contain input object Eg: {type:"String",data:"data"}
+       * @param {string} type - Chat Creater Type ['USER','BOT']
+       * @returns {object} Return the element 
+      */
+      function generateDivForChat(data,type='BOT') {
+        // Row_Div Creation [Start]
+        const rowDiv = document.createElement('div');
+        rowDiv.classList.add("d-flex","flex-row","text-break","mb-3");
+        // Row_Div [End]
+
+        const contentDiv = document.createElement('div');
+        contentDiv.setAttribute('id',generateRandomString(10));
+        contentDiv.classList.add("pe-2");
+        if(type == 'USER') {
+          rowDiv.innerHTML = userInnerHtml;
+          contentDiv.classList.add("py-2","ps-3");
+        }
+        else {
+          rowDiv.classList.add("bg-light","rounded")
+          rowDiv.innerHTML = botInnerHtml;
+          contentDiv.classList.add("py-3","ps-2");
+        }
+        contentDiv.textContent = data.text;
+        rowDiv.appendChild(contentDiv);
+        return rowDiv;
+      }
+      chatContainer.appendChild(generateDivForChat({text:'User Content'},'USER'));
+      chatContainer.appendChild(generateDivForChat({text:'Bot data'}));
+    </script>
+</body>
+
+</html>
