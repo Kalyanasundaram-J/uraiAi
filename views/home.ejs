@@ -52,14 +52,16 @@
       async function sendingPrompt (event){
         event.preventDefault(); // Prevent the form from submitting
         if (promptInput.value) {
-          console.log("Jumped inside function")
           chatContainer.appendChild(generateDivForChat({text:promptInput.value},'USER'));
-          result = await happyFace(promptInput.value);
-          chatContainer.appendChild(generateDivForChat({text:result}));
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-          console.log("Scroll crossed")
+          const prompt = promptInput.value;
           promptInput.value = "";
           promptInput.rows = 1
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          chatContainer.appendChild(responseLoading())
+          result = await happyFace(prompt);
+          responseLoading(true)
+          chatContainer.appendChild(generateDivForChat({text:result}));
+          chatContainer.scrollTop = chatContainer.scrollHeight;
 
         }
       };
@@ -71,10 +73,14 @@
           }
           else {
             chatContainer.appendChild(generateDivForChat({text:promptInput.value},'USER'));
-            result = await happyFace(promptInput.value);
-            console.log("Result:", result);
-            chatContainer.appendChild(generateDivForChat({text:result}));
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            const prompt = promptInput.value;
             promptInput.value = "";
+            chatContainer.appendChild(responseLoading())
+            result = await happyFace(prompt);
+            responseLoading(true)
+            chatContainer.appendChild(generateDivForChat({text:result}));
+            chatContainer.scrollTop = chatContainer.scrollHeight;
           }
         }
       });
@@ -125,6 +131,27 @@
 
         return result;
       }
+
+      /**
+       * @param {number} turnOff - remove the loader
+      */
+      function responseLoading(turnOff) {
+        if(turnOff) {
+          document.getElementById('botResponseSpinner').remove();
+          return true;
+        }
+        const div = document.createElement('div');
+        div.classList.add('spinner-grow', 'text-primary');
+        div.setAttribute('role','status');
+        div.setAttribute('id','botResponseSpinner');
+        // const span = document.createElement('span');
+        // span.classList.add('sr-only');
+        // span.textContent="Loading...";
+        // div.appendChild(span);
+        return div;
+      }
+
+
       // User and Bot chat element defined here
       const userInnerHtml = `
         <div class="flex-shrink-1 pt-1">
@@ -170,8 +197,7 @@
         rowDiv.appendChild(contentDiv);
         return rowDiv;
       }
-      chatContainer.appendChild(generateDivForChat({text:'User Content'},'USER'));
-      chatContainer.appendChild(generateDivForChat({text:'Bot data'}));
+      chatContainer.appendChild(generateDivForChat({text:'Hi, I am chat bot.'}));
     </script>
 </body>
 
